@@ -1,6 +1,6 @@
 {
   "name": "ms-parse-duration",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A simple utility to parse human-readable duration strings into milliseconds.",
   "main": "build/index.js",
   "scripts": {
