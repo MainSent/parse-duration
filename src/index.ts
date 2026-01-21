@@ -20,11 +20,11 @@ const UNIT_MS: Record<DurationUnit, number> = {
     msecs: 1,
 
     // seconds
-    s: 1000,
-    sec: 1000,
-    secs: 1000,
-    second: 1000,
-    seconds: 1000,
+    s: 1_000,
+    sec: 1_000,
+    secs: 1_000,
+    second: 1_000,
+    seconds: 1_000,
 
     // minutes
     m: 60_000,
