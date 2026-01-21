@@ -1,4 +1,4 @@
-# parse-duration
+# ms-parse-duration
 
 A tiny utility to parse human-readable duration strings into milliseconds.
 
