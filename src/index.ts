@@ -64,16 +64,18 @@ function parseColonTimeToMs(s: string): number | null {
     if (!/^[+-]?\d+$/.test(hStr)) return null;
     if (!/^\d+$/.test(mStr)) return null;
     if (sStr != null && !/^\d+(?:\.\d+)?$/.test(sStr)) return null;
-
-    const hours = Number(hStr);
+    const sign = hStr.startsWith('-') ? -1 : 1;
+    const hours = Math.abs(Number(hStr));
     const minutes = Number(mStr);
     const seconds = sStr != null ? Number(sStr) : 0;
 
+    // Validate ranges
     if (!Number.isFinite(hours) || !Number.isFinite(minutes) || !Number.isFinite(seconds)) return null;
     if (minutes < 0 || minutes >= 60) return null;
     if (seconds < 0 || seconds >= 60) return null;
 
-    const total = hours * 3_600_000 + minutes * 60_000 + seconds * 1000;
+    // Compute total
+    const total = (hours * 3_600_000 + minutes * 60_000 + seconds * 1_000) * sign;
     return Math.round(total);
 }
 
