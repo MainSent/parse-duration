@@ -116,14 +116,14 @@ export function parseDurationMs(input: string): number {
     for (const match of trimmed.matchAll(TOKEN_REG_EX)) {
         matchedAny = true;
         const value = Number(match[1]);
-        const unit = match[2].toLowerCase() as DurationUnit;
+        const unit = match[2].toLowerCase();
         if (!Number.isFinite(value)) {
             throw new Error(`parseDurationMs: invalid number "${match[1]}" in "${raw}"`);
         }
-        const msPer = UNIT_MS[unit];
-        if (!msPer) {
+        if (!isDurationUnit(unit)) {
             throw new Error(`parseDurationMs: unknown unit "${match[2]}" in "${raw}"`);
         }
+        const msPer = UNIT_MS[unit];
         total += value * msPer;
     }
 
@@ -135,4 +135,13 @@ export function parseDurationMs(input: string): number {
 
     // Final rounding
     return Math.round(total);
+}
+
+/**
+ * Check if a string is a valid duration unit.
+ * @param unit The unit string to check.
+ * @returns True if valid, false otherwise.
+ */
+export function isDurationUnit(unit: string): unit is DurationUnit {
+    return unit in UNIT_MS;
 }
