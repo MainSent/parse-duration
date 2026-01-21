@@ -2,11 +2,11 @@
 
 A tiny utility to parse human-readable duration strings into milliseconds.
 
-This library powers a single function, `parseDurationMs`, plus a small helper `isDurationUnit`.
+This library has a single function, `parseDurationMs`, plus a small helper `isDurationUnit`.
 
 ## Installation
 
-Using pnpm (recommended in this repo):
+Using pnpm (recommended):
 
 ```bash
 pnpm add parse-duration
