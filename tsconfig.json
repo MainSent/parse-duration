@@ -8,7 +8,9 @@
       "ESNext"
     ],
     "sourceMap": true,
-    "declaration": false,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": false,
     "composite": false,
     "removeComments": true,
     "noImplicitAny": true,
