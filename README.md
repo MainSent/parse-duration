@@ -9,19 +9,19 @@ This library has a single function, `parseDurationMs`, plus a small helper `isDu
 Using pnpm (recommended):
 
 ```bash
-pnpm add parse-duration
+pnpm add ms-parse-duration
 ```
 
 Using npm:
 
 ```bash
-npm install parse-duration
+npm install ms-parse-duration
 ```
 
 Using Yarn:
 
 ```bash
-yarn add parse-duration
+yarn add ms-parse-duration
 ```
 
 ## API
