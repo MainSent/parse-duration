@@ -407,3 +407,93 @@ describe('isDurationUnit', () => {
         }
     });
 });
+
+describe('token scanning', () => {
+
+    // Original token-list parser (global RegExp search), kept as the behavioural reference
+    const REFERENCE_TOKEN_REG_EX = /([+-]?\d+(?:\.\d+)?)\s*([a-zA-Z]+)/g;
+    const REFERENCE_UNIT_MS: Record<string, number> = {
+        ms: 1, millisecond: 1, milliseconds: 1, msec: 1, msecs: 1,
+        s: 1_000, sec: 1_000, secs: 1_000, second: 1_000, seconds: 1_000,
+        m: 60_000, min: 60_000, mins: 60_000, minute: 60_000, minutes: 60_000,
+        h: 3_600_000, hr: 3_600_000, hrs: 3_600_000, hour: 3_600_000, hours: 3_600_000,
+        d: 86_400_000, day: 86_400_000, days: 86_400_000,
+    };
+    function referenceParseDurationMs(input: string): number {
+        const raw = String(input);
+        const trimmed = raw.trim();
+        if (!trimmed) return 0;
+        if (/^[+-]?\d+(?:\.\d+)?$/.test(trimmed)) {
+            const n = Number(trimmed);
+            if (!Number.isFinite(n)) throw new Error(`parseDurationMs: invalid number "${raw}"`);
+            return Math.round(n);
+        }
+        let total = 0;
+        let matchedAny = false;
+        for (const match of trimmed.matchAll(REFERENCE_TOKEN_REG_EX)) {
+            matchedAny = true;
+            const value = Number(match[1]);
+            const unit = match[2].toLowerCase();
+            if (!Number.isFinite(value)) {
+                throw new Error(`parseDurationMs: invalid number "${match[1]}" in "${raw}"`);
+            }
+            if (!isDurationUnit(unit)) {
+                throw new Error(`parseDurationMs: unknown unit "${match[2]}" in "${raw}"`);
+            }
+            total += value * REFERENCE_UNIT_MS[unit];
+        }
+        const remainder = trimmed.replace(REFERENCE_TOKEN_REG_EX, '').trim();
+        if (!matchedAny || remainder.length > 0) {
+            throw new Error(`parseDurationMs: could not fully parse "${raw}"`);
+        }
+        return Math.round(total);
+    }
+
+    function outcome(parse: (input: string) => number, input: string): string {
+        try {
+            return `ok:${parse(input)}`;
+        } catch (error) {
+            return `error:${(error as Error).message}`;
+        }
+    }
+
+    it('matches the original global-RegExp parser on random inputs', () => {
+
+        // Deterministic PRNG (mulberry32) so failures are reproducible
+        let seed = 0x5eed;
+        const random = () => {
+            seed = (seed + 0x6d2b79f5) | 0;
+            let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+            return ((t ^ (t >>> 14)) >>> 0) / 4_294_967_296;
+        };
+        const pieces = [
+            '0', '1', '23', '9', '0.5', '.', '+', '-', ' ', '  ', '\t', '\n', ' ',
+            'h', 'H', 'm', 'min', 'ms', 'MS', 's', 'sec', 'd', 'days', 'Hours', 'x', 'e', '!', 'é',
+        ];
+        for (let i = 0; i < 50_000; i++) {
+            let input = '';
+            const count = 1 + Math.floor(random() * 8);
+            for (let j = 0; j < count; j++) input += pieces[Math.floor(random() * pieces.length)];
+            expect(outcome(parseDurationMs, input), JSON.stringify(input))
+                .toBe(outcome(referenceParseDurationMs, input));
+        }
+    });
+
+    it('rejects long malformed numeric input in linear time', () => {
+        const n = 50_000;
+        const inputs = [
+            '1'.repeat(n) + '!',
+            '-' + '1'.repeat(n) + '.',
+            '1'.repeat(n) + ' '.repeat(n) + '!',
+            '1h ' + '9'.repeat(n) + '#',
+        ];
+        const started = performance.now();
+        for (const input of inputs) {
+            expect(() => parseDurationMs(input)).toThrowError('parseDurationMs: could not fully parse');
+        }
+
+        // The global-RegExp version needed several seconds for a single 10k-digit input
+        expect(performance.now() - started).toBeLessThan(500);
+    });
+});
